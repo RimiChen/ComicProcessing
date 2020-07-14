@@ -1,4 +1,7 @@
 COMICS_Data/
 Style_transfer/vgg/
 exercises_thushv_dot_com-master/
-
+Style_transfer/test_images_Ja2West/
+Style_transfer/test_images_Ja2West_panels_only_no_text/
+Style_transfer/test_images_West2Ja/
+Style_transfer/test_images_West2Ja_panels_only_no_text/

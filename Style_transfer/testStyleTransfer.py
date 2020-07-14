@@ -10,7 +10,9 @@ from random import shuffle
 import matplotlib.pyplot as plt
 import os
 import re
+import time
 
+start_time = time.time()
 ### to ignore warning
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -282,8 +284,8 @@ vgg_layers = load_weights(os.path.join('vgg','vgg16_weights.npz'),7)
 pool_inds = get_vgg_pooling_indices(list(vgg_layers.keys()))
 print('pooling indices are: {}'.format(pool_inds))
 
-plt.imshow(Image.open(os.path.join('data','style_1.jpg')))
-plt.axis('off')
+# plt.imshow(Image.open(os.path.join('data','style_1.jpg')))
+# plt.axis('off')
 
 ### test whether can reach the image
 # im = Image.open(os.path.join('test_images_West2Ja','0_0.JPG'))
@@ -291,41 +293,37 @@ plt.axis('off')
 
 
 
-tf.compat.v1.disable_eager_execution()
-#tf.reset_default_graph()
-tf.compat.v1.reset_default_graph()
-sess = tf.compat.v1.InteractiveSession(
-    config=tf.compat.v1.ConfigProto(allow_soft_placement=True)
-)
+# tf.compat.v1.disable_eager_execution()
 
-# Defining partial functions to used by the tf.data.Dataset.from_generator()
-part_style_gen_func = partial(image_gen_func, 'data', "style_")
-part_content_gen_func = partial(image_gen_func, 'data', "content_")
-
-style_iter = load_images_iterator(part_style_gen_func, zero_mean=False)
-content_iter = load_images_iterator(part_content_gen_func, zero_mean=False)
-
-
-next_style_image = style_iter.get_next()
-next_content_image = content_iter.get_next()
+# next_style_image = style_iter.get_next()
+# next_content_image = content_iter.get_next()
 
 
 
 
-plt.subplot(1,2,1)
-plt.imshow(sess.run(next_style_image)[0][0]/255.0)
-plt.axis('off')
-plt.subplot(1,2,2)
-plt.imshow(sess.run(next_content_image)[0][0]/255.0)
-plt.axis('off')
+# plt.subplot(1,2,1)
+# plt.imshow(sess.run(next_style_image)[0][0]/255.0)
+# plt.axis('off')
+# plt.subplot(1,2,2)
+# plt.imshow(sess.run(next_content_image)[0][0]/255.0)
+# plt.axis('off')
 
-sess.close()
+# sess.close()
 
 
 
 #### ========================================================
 
+tf.compat.v1.disable_eager_execution()
+
 tf.compat.v1.reset_default_graph()
+
+# Assume that you have 12GB of GPU memory and want to allocate ~4GB:
+
+
+#gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
+#sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
+
 
 config = tf.compat.v1.ConfigProto(allow_soft_placement=True)
 sess = tf.compat.v1.InteractiveSession(config=config)
@@ -334,8 +332,12 @@ sess = tf.compat.v1.InteractiveSession(config=config)
 
 
 # 1. Defining the input pipeline
-part_style_gen_func = partial(image_gen_func, 'data', "style_")
-part_content_gen_func = partial(image_gen_func, 'data', "content_")
+#part_style_gen_func = partial(image_gen_func, 'test_images_Ja2West', "AisazuNihaIrarenai_")
+#part_content_gen_func = partial(image_gen_func, 'test_images_West2Ja', "west_")
+part_style_gen_func = partial(image_gen_func, 'test_images_Ja2West_panels_only_no_text', "AisazuNihaIrarenai_")
+part_content_gen_func = partial(image_gen_func, 'test_images_West2Ja_panels_only_no_text', "west_")
+#part_style_gen_func = partial(image_gen_func, 'test_images_West2Ja_panels_only_no_text', "west_")
+#part_content_gen_func = partial(image_gen_func, 'test_images_Ja2West_panels_only_no_text', "AisazuNihaIrarenai_")
 
 style_iter = load_images_iterator(part_style_gen_func, zero_mean=True)
 content_iter = load_images_iterator(part_content_gen_func, zero_mean=True)
@@ -413,3 +415,6 @@ for j in range(10):
             print('\tLoss at iteration {}: {}'.format(i+1, l))
             gen_image = sess.run(inputs["generated"])
             save_image_with_restore(gen_image[0], cont_mean[0], os.path.join('data', 'gen_{}'.format(j),'gen_{}.jpg'.format(i+1)))
+            
+            
+print("--- %s seconds ---" % (time.time() - start_time))
