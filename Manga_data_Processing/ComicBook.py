@@ -21,7 +21,7 @@ if __name__ == "__main__":
     # read target script  (read xml and get running object)
     
     ## assigned xml file path
-    fileName = "./annotation_data/AisazuNihaIrarenai.xml"
+    fileName = "./annotation_data/YumeiroCooking.xml"
     print("SYSTEM: load the script "+fileName)
     
     ## initialize the translater (googleTrans)
