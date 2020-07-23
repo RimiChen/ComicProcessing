@@ -6,3 +6,9 @@ Style_transfer/test_images_Ja2West_panels_only_no_text/
 Style_transfer/test_images_West2Ja/
 Style_transfer/test_images_West2Ja_panels_only_no_text/
 MangaAnnotation/YumeiroCooking/
+Manga_data_Processing/manga_images/
+Manga_data_Processing/annotation_data/
+Manga_data_Processing/data/
+MangaAnnotation/manga_images/
+MangaAnnotation/annotation_data/
+MangaAnnotation/data/

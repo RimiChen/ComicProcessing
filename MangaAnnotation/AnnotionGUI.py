@@ -8,18 +8,21 @@ from random import randrange
 from PIL import Image, ImageTk
 
 
-MANGA_PATH = "YumeiroCooking/"
+MANGA_PATH = "manga_images/YumeiroCooking/"
+MANGA_ANNOTATION_PATH = "annotation_data/YumeiroCooking/"
+NEED_SPLIT = True
+
+
+
+
 DEFAULT_COUNT = 0
-
-
-
 
 global G_WINDOW_WIDTH
 G_WINDOW_WIDTH = 1200
 global G_WINDOW_HEIGHT
 G_WINDOW_HEIGHT = 800
 global G_MAX_LAYER
-G_MAX_LAYER = 4
+G_MAX_LAYER = 6
 
 global window
 window = tk.Tk()
@@ -119,6 +122,23 @@ def next_page(parent_frame, order_parent, structure_parent, menu_parent, image_l
 
     global record_transitions
     global current_transition_count
+    global layer_frames
+
+    global layer_record
+    #[layer][position_index][index(index of the child)] = "label"
+
+    global layer_list
+    #[layer] = [button_label]
+
+    global layer_position
+    #[layer][position_index] = frame
+
+
+    global layer_info
+    #[layer][position_index] = child#
+
+
+
     
     previous_count = page_count
     page_count = (page_count + 1 )% file_number
@@ -128,6 +148,11 @@ def next_page(parent_frame, order_parent, structure_parent, menu_parent, image_l
     current_order_count = 0
     record_transitions = []
     current_transition_count = 0    
+    layer_frames = []    
+    layer_record = {}
+    layer_list = {}
+    layer_position = {} 
+    layer_info = {}           
     #clean_all_structure(structure_parent)
     clean_all_in_frames(structure_parent)
 
@@ -143,6 +168,22 @@ def pre_page(parent_frame, order_parent, structure_parent, menu_parent, image_la
 
     global record_transitions
     global current_transition_count
+ 
+ 
+    global layer_frames
+
+    global layer_record
+    #[layer][position_index][index(index of the child)] = "label"
+
+    global layer_list
+    #[layer] = [button_label]
+
+    global layer_position
+    #[layer][position_index] = frame
+
+
+    global layer_info
+    #[layer][position_index] = child#    
         
     previous_count = page_count
     page_count = (page_count - 1) % file_number     
@@ -152,6 +193,11 @@ def pre_page(parent_frame, order_parent, structure_parent, menu_parent, image_la
     current_order_count = 0
     record_transitions = []
     current_transition_count = 0
+    layer_frames = []    
+    layer_record = {}
+    layer_list = {}
+    layer_position = {} 
+    layer_info = {}   
     #clean_all_structure(structure_parent)    
     clean_all_in_frames(structure_parent)
     
@@ -183,6 +229,7 @@ def render_image(parent_frame, order_frame, structure_parent, manga_menu_frame):
     ### load the default image
     global page_count
     load = Image.open(MANGA_PATH+manga_page_list[page_count])
+    print(MANGA_PATH+manga_page_list[page_count])
     global current_image_w
     global current_image_h
     current_image_w, current_image_h = load.size
@@ -251,6 +298,7 @@ def render_frame_labels(parent_frame, order_parent, structure_parent):
         frame_list = book_annotation[page_count]["frames"]
         destory_order_frames(order_parent)
         destory_transition_frames(order_parent)
+        #clean_all_structure(structure_parent)
         if len(frame_list) > 0:
             #### at least a frame in this page
             frame_labels = []
@@ -260,7 +308,8 @@ def render_frame_labels(parent_frame, order_parent, structure_parent):
             for frame in frame_list:
                 coord_x, coord_y = new_coord(int(frame["xmin"]), int(frame["ymin"]), int(frame["xmax"]), int(frame["ymax"]))
         # frames = 
-                frame_button = tk.Button(parent_frame, text = frame["id"], bg = from_rgb((randrange(256), randrange(256), randrange(256))))
+                #bg=from_rgb((232, 255, 157))
+                frame_button = tk.Button(parent_frame, text = frame["id"], bg = from_rgb((0, 255, randrange(256))))
                 frame_button.configure(command=lambda button=frame_button: add_order(button))
                 frame_button.place(x=coord_x, y=coord_y, anchor=tk.CENTER)
                 
@@ -270,9 +319,23 @@ def render_frame_labels(parent_frame, order_parent, structure_parent):
         
         load_order_frames(order_parent)
         load_transition_frames(order_parent)  
+        load_structure_layers(structure_parent)
 
+    
+    # total_structure_height = structure_parent.winfo_height()
+    # total_structure_width = structure_parent.winfo_width()
 
-    load_structure_layers(structure_parent)
+    # global G_MAX_LAYER
+    # max_layer = G_MAX_LAYER
+    # print(total_structure_height)
+    # print(total_structure_width)
+
+    # layer_frames = []
+    # for layer in range(max_layer):
+    #     #print(layer)
+    #     new_layer = tk.Frame(master= structure_parent, width=total_structure_width, height=math.floor(total_structure_height/max_layer), bg=from_rgb((232, randrange(256), randrange(256))))
+    #     new_layer.place(x=0, y=math.floor(total_structure_height/max_layer * layer))
+    #     layer_frames.append(new_layer)
 
 
 def record_page(now_page):
@@ -304,6 +367,7 @@ def record_page(now_page):
     page_node["reading_order"] = record_orders
     page_node["transitions"] = record_transitions
     page_node["layout"] = layer_list
+
     # page_node["panels"] = {}
     
     # for panel in book_annotation[page_count]["frames"]:
@@ -400,9 +464,9 @@ def add_order(self_button):
                 record_orders.append(current_id)        
                 
                 ### generate button
-                new_order_id = tk.Button(reading_order_frames[current_order_count], text = current_id, bg = from_rgb((randrange(256), randrange(256), randrange(256))))
+                new_order_id = tk.Button(reading_order_frames[current_order_count], text = current_id, bg = from_rgb((0, 255, randrange(256))))
                 new_order_id.configure(command=lambda button=new_order_id: remove_order(button))
-                new_order_id.place(x=0, y=0, anchor=tk.CENTER)
+                new_order_id.place(relx=0.2, rely=0.2, anchor=tk.CENTER)
                 # print("Add to reading order "+ str(current_order_count))    
 
                 current_order_count = current_order_count + 1
@@ -410,9 +474,9 @@ def add_order(self_button):
         else:
             record_orders.append(current_id)
             ### generate button
-            new_order_id = tk.Button(reading_order_frames[current_order_count], text = current_id, bg = from_rgb((randrange(256), randrange(256), randrange(256))))
+            new_order_id = tk.Button(reading_order_frames[current_order_count], text = current_id, bg = from_rgb((0, 255, randrange(256))))
             new_order_id.configure(command=lambda button=new_order_id: remove_order(button))
-            new_order_id.place(x=0, y=0, anchor=tk.CENTER)
+            new_order_id.place(relx=0.2, rely=0.2, anchor=tk.CENTER)
             # print("Add to reading order "+ str(current_order_count))    
             
             current_order_count = current_order_count + 1               
@@ -450,9 +514,9 @@ def add_transition(self_button):
 
             record_transitions.append(current_id)
             ### generate button
-            new_transition_id = tk.Button(reading_transition_frames[current_transition_count], text = current_id, bg = from_rgb((randrange(256), randrange(256), randrange(256))))
+            new_transition_id = tk.Button(reading_transition_frames[current_transition_count], text = current_id, bg = from_rgb((0, 255, randrange(256))))
             new_transition_id.configure(command=lambda button=new_transition_id: remove_transition(button))
-            new_transition_id.place(x=0, y=0, anchor=tk.CENTER)
+            new_transition_id.place(relx=0.2, rely=0.3, anchor=tk.CENTER)
             # print("Add to reading transition "+ str(current_transition_count))    
             
             current_transition_count = current_transition_count + 1 
@@ -549,13 +613,127 @@ def load_manga_109_annotations(json_path):
     
         annotations = json.load(json_file)
         
-    count = 0
-    for annotation in annotations:
+    
+        if NEED_SPLIT == True:
+        # "index": "0",
+        # "overallW": "1654",
+        # "overallH": "1170",
+        # "frames": [],
+        # "faces": [],
+        # "texts": [],
+        # "bodys": []
         
-        book_dictionary[count] = annotation
-        # print(annotation)
-        count = count + 1
+                # "id": "00080767",
+                # "xmin": "910",
+                # "ymin": "610",
+                # "xmax": "1614",
+                # "ymax": "1169"
+            book_temp  = {}
+            count = 0
+            for annotation in annotations:
+                
+                book_temp[count] = annotation
+                # print(annotation)
+                count = count + 1
+
+            page_count = 0
+            for data in book_temp:
+                base_x = int(book_temp[data]["overallW"]) / 2
+                #print("x = "+str(base_x))
+                base_y = int(book_temp[data]["overallH"])
+                
+                
+                frame_right = []
+                frame_left = []
+                face_right = []
+                face_left = []
+                text_right = []
+                text_left = []
+                body_right = []
+                body_left = []
+                
+                
+
+                for frame in  book_temp[data]["frames"]:
+                    #print("center_number = "+str(math.floor((int(frame["xmin"]) + int(frame["xmax"]))/2)))
+                    if math.floor((int(frame["xmin"]) + int(frame["xmax"]))/2) > base_x:
+                        frame["xmin"] = int(frame["xmin"]) - base_x
+                        frame["xmax"] = int(frame["xmax"]) - base_x
+                        frame_right.append(frame)
+                    else:
+                        frame_left.append(frame) 
+                    
+                for face in  book_temp[data]["faces"]:
+                    #print("center_number = "+str(math.floor((int(face["xmin"]) + int(face["xmax"]))/2)))
+                    if math.floor((int(face["xmin"]) + int(face["xmax"]))/2) > base_x:
+                        face["xmin"] = int(face["xmin"]) - base_x
+                        face["xmax"] = int(face["xmax"]) - base_x
+                        face_right.append(face)
+                    else:
+                        face_left.append(face) 
+                    
+                for text in  book_temp[data]["texts"]:
+                    #print("center_number = "+str(math.floor((int(text["xmin"]) + int(text["xmax"]))/2)))
+                    if math.floor((int(text["xmin"]) + int(text["xmax"]))/2) > base_x:
+                        text["xmin"] = int(text["xmin"]) - base_x
+                        text["xmax"] = int(text["xmax"]) - base_x
+                        text_right.append(text)
+                    else:
+                        text_left.append(text) 
+                        
+                        
+                for body in  book_temp[data]["bodys"]:
+                    #print("center_number = "+str(math.floor((int(body["xmin"]) + int(body["xmax"]))/2)))
+                    if math.floor((int(body["xmin"]) + int(body["xmax"]))/2) > base_x:
+                        body["xmin"] = int(body["xmin"]) - base_x
+                        body["xmax"] = int(body["xmax"]) - base_x
+                        body_right.append(body)
+                    else:
+                        body_left.append(body) 
+
+
+
+        # "index": "0",
+        # "overallW": "1654",
+        # "overallH": "1170",
+        # "frames": [],
+        # "faces": [],
+        # "texts": [],
+        # "bodys": []
+                book_dictionary[page_count] = {}
+                book_dictionary[page_count]["index"] = page_count
+                book_dictionary[page_count]["overallW"] = base_x
+                book_dictionary[page_count]["overallH"] = base_y
+                book_dictionary[page_count]["frames"] = frame_right
+                book_dictionary[page_count]["faces"] = face_right
+                book_dictionary[page_count]["texts"] = text_right
+                book_dictionary[page_count]["bodys"] = body_right
+                page_count = page_count + 1
+                
+                book_dictionary[page_count] = {}
+                book_dictionary[page_count]["index"] = page_count
+                book_dictionary[page_count]["overallW"] = base_x
+                book_dictionary[page_count]["overallH"] = base_y
+                book_dictionary[page_count]["frames"] = frame_left
+                book_dictionary[page_count]["faces"] = face_left
+                book_dictionary[page_count]["texts"] = text_left
+                book_dictionary[page_count]["bodys"] = body_left
+                page_count = page_count + 1
+                                
+
+        else:
+            count = 0
+            for annotation in annotations:
+                
+                book_dictionary[count] = annotation
+                # print(annotation)
+                count = count + 1
         
+    # json_file = open("book.json", "w")
+    # # magic happens here to make it pretty-printed
+    # json_file.write(json.dumps( book_dictionary, indent=4))
+    # json_file.close()       
+    
     return book_dictionary
     
 def get_book_name(path_string):
@@ -623,7 +801,7 @@ def load_order_frames(parent_frame):
         
         for count in range(frame_count):
             #### panel --> transistion --> panel .....
-            new_panel_frame = tk.Frame(parent_frame, width=each_width, height=parent_frame.winfo_height(), bg=from_rgb((255, 255, 0)))
+            new_panel_frame = tk.Frame(parent_frame, width=each_width, height=parent_frame.winfo_height(), bg=from_rgb((0, 143, 10)))
             new_panel_frame.place(x=pair_width * count, y=0)
             reading_order_frames.append(new_panel_frame)        
         
@@ -665,7 +843,7 @@ def load_transition_frames(parent_frame):
         
         for count in range(frame_count):
             #### panel --> transistion --> panel .....
-            new_panel_frame = tk.Frame(parent_frame, width=each_width, height=parent_frame.winfo_height(), bg=from_rgb((255, 0, 255)))
+            new_panel_frame = tk.Frame(parent_frame, width=each_width, height=parent_frame.winfo_height(), bg=from_rgb((255, 255, 255)))
             new_panel_frame.place(x=pair_width * count+each_width, y=0)
             reading_transition_frames.append(new_panel_frame)        
         
@@ -712,7 +890,7 @@ def load_structure_layers(structure_parent):
         layer_list[layer] = []
         layer_position[layer] = {}
         layer_info[layer] = {}
-        new_layer = tk.Frame(master= structure_parent, width=total_structure_width, height=math.floor(total_structure_height/max_layer), bg=from_rgb((232, randrange(256), randrange(256))))
+        new_layer = tk.Frame(master= structure_parent, width=total_structure_width, height=math.floor(total_structure_height/max_layer), bg=from_rgb((0, 255, randrange(256))))
         new_layer.place(x=0, y=math.floor(total_structure_height/max_layer * layer))
         
         # layer_add = tk.Button(new_layer, text="Layer"+str(layer)+"+", bg=from_rgb((232, 255, 157)))
@@ -752,7 +930,7 @@ def load_structure_layers(structure_parent):
     layer_info[-1]= {}
     layer_info[-1][0]= 1
     
-    color = from_rgb((232, randrange(256), randrange(256)))
+    color = from_rgb((0, 255, randrange(256)))
     new_layer = tk.Frame(master= layer_frames[1], width=width, height=height, bg=color)
     new_layer.place(x=0, y=0)
     layer_position[1][0] = new_layer  
@@ -768,11 +946,11 @@ def clean_all_structure(structure_parent):
     global layer_frames
     
     for layer in layer_frames:
-        clean_all_in_frames(layer_frames[layer])
+        clean_all_in_frames(layer)
     load_structure_layers(structure_parent)
     
     
-# def structure_base(button, parent_frame, up_width, height, button_width, layer):
+def structure_base(button, parent_frame, up_width, height, button_width, layer):
     global G_MAX_LAYER
     global layer_frames
     global layer_record 
@@ -878,6 +1056,10 @@ def button_function(current_button):
         # root
         parent_layer = -1
         parent_index = 0
+        
+    
+    
+    
     
     #print("layer = "+str(layer)+", parent_layer = "+str(parent_layer))
     #print("layer = "+str(layer)+", parent_index = "+str(parent_index))
@@ -942,18 +1124,57 @@ def button_function(current_button):
         for sub_frame in layer_position[next_layer]:
             layer_position[next_layer][sub_frame].place(width = new_next_width, height= new_next_height, x=sub_frame*new_next_width, y=0)
         
-        color = from_rgb((232, randrange(256), randrange(256)))
+        color = from_rgb((0, 255, randrange(256)))
         new_layer = tk.Frame(master= layer_frames[next_layer], width=new_next_width, height=new_next_height, bg=color)
         new_layer.place(x=(next_layer_number-1)*new_next_width, y=0)
         layer_position[next_layer][next_layer_number-1] = new_layer               
         
-        
+    
+    ### clean after layers
+    
+    for temp_layer in range(G_MAX_LAYER):
+        if temp_layer > layer:
+            layer_list[temp_layer] = []
+            layer_record[temp_layer] = {}
+            layer_info[layer] = {}
+            for target in layer_position[temp_layer]:
+                # print("clean:" + str(temp_layer)+", "+str(target))
+                clean_all_in_frames(layer_position[temp_layer][target])
+
+    #print(json.dumps(layer_list, indent=4))
+    #print(json.dumps(layer_info, indent=4))
     
 def get_label_text(index_label):
+    global layer_list
+    
+    index_label_string = index_label.split("_")
+    layer = int(index_label_string[0])
+    prefix = ""
+    
+    if layer % 2 == 0:
+        prefix = "R"
+        count = 0
+        for record in layer_list:
+            if record > 0 and record < layer and record % 2 == 0:
+                count = count + len(layer_list[record])
+
+        index = count +  layer_list[layer].index(index_label)       
+        
+    else:
+        prefix = "C" 
+        count = 0
+        for record in layer_list:
+            if record > 0 and record < layer and record % 2 == 1:
+                count = count + len(layer_list[record])
+        index = count +  layer_list[layer].index(index_label) 
+        
+    
+    index_label = prefix+str(index)
+            
     return index_label    
 def drawLabelset(parent_frame, width, height, x, y, button_fun, button_label, label_text):
 
-        color = from_rgb((232, randrange(256), randrange(256)))
+        color = from_rgb((255, 255, randrange(256)))
         new_layer = tk.Frame(master= parent_frame, width=width, height=height, bg=color, bd = 2)
         new_layer.place(x=x, y=y) 
    
@@ -1096,7 +1317,8 @@ if __name__ == "__main__":
     manga_page_list = loadManga(MANGA_PATH)
     file_number = len(manga_page_list)
     book_name = get_book_name(MANGA_PATH)
-    json_path = book_name+"_pages.json"
+    json_path = MANGA_ANNOTATION_PATH+book_name+"_pages.json"
     ## Lauch the interface
     book_annotation = load_manga_109_annotations(json_path)
+    print(len(book_annotation))
     GUIterface(G_WINDOW_WIDTH, G_WINDOW_HEIGHT, MANGA_PATH, manga_page_list)

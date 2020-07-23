@@ -4,6 +4,7 @@ import xml.etree.ElementTree as ET
 from googletrans import Translator
 import json
 
+FILE_NAME = "./annotation_data/Saisoku.xml"
 
 class ComicBook:
     def __init__(self):
@@ -21,7 +22,7 @@ if __name__ == "__main__":
     # read target script  (read xml and get running object)
     
     ## assigned xml file path
-    fileName = "./annotation_data/YumeiroCooking.xml"
+    fileName = FILE_NAME
     print("SYSTEM: load the script "+fileName)
     
     ## initialize the translater (googleTrans)
